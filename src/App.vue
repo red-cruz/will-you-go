@@ -166,7 +166,7 @@
             <p class="mb-1"><strong>What:</strong> A fun afternoon doing something new together</p>
             <p class="mb-1"><strong>When:</strong> This Saturday at 1 PM</p>
             <p class="mb-1"><strong>Where:</strong> {{ finalLocation }}</p>
-            <p class="fst-italic text-secondary mt-3">(Seriously, comfy shoes. 😉)</p>
+            <p class="fst-italic text-secondary mt-3">(Seriously, comfy pants and shoes. 😉)</p>
           </div>
         </div>
       </div>
