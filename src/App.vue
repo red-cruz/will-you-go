@@ -155,7 +155,7 @@
         class="card text-center shadow-lg p-4 w-100 animate__animated animate__rubberBand"
       >
         <div class="card-body">
-          <h1 class="card-title text-success mb-3">YES! Can't wait to meet you! 🥳</h1>
+          <h1 class="card-title text-success mb-3">Yippee! Can't wait to meet you! 🥳</h1>
           <p class="lead mb-4">This is going to be so much fun.</p>
           <img
             :src="catGif"
@@ -340,29 +340,27 @@ const resetApp = (): void => {
   --bs-btn-border-color: #888;
 }
 
-/* Slide transition */
+/* Improved slide transition */
 .slide-left-enter-active,
 .slide-left-leave-active {
-  transition: all 0.5s ease-in-out;
-}
-.slide-left-enter-from,
-.slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(100%);
-}
-.slide-left-leave-from,
-.slide-left-enter-to {
-  opacity: 1;
-  transform: translateX(0);
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* smoother & bouncy */
 }
 
-/* Fade transition for decline steps */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.8s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
+.slide-left-enter-from {
   opacity: 0;
+  transform: translateX(50px) scale(0.95);
+}
+.slide-left-enter-to {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.slide-left-leave-from {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-50px) scale(0.95);
 }
 </style>
