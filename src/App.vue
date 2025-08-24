@@ -1,6 +1,8 @@
 <template>
   <div id="app" class="container py-5 d-flex justify-content-center align-items-center min-vh-100">
-    <Transition name="slide-left" mode="out-in">
+    <!-- Transition changes based on step -->
+    <Transition :name="step >= 8 ? 'fade' : 'slide-left'" mode="out-in">
+      <!-- STEP 1 -->
       <div
         v-if="step === 1"
         key="step-1"
@@ -25,6 +27,7 @@
         </div>
       </div>
 
+      <!-- STEP 2 -->
       <div
         v-else-if="step === 2"
         key="step-2"
@@ -54,6 +57,7 @@
         </div>
       </div>
 
+      <!-- STEP 3 -->
       <div
         v-else-if="step === 3"
         key="step-3"
@@ -78,6 +82,7 @@
         </div>
       </div>
 
+      <!-- STEP 4 -->
       <div
         v-else-if="step === 4"
         key="step-4"
@@ -98,6 +103,7 @@
         </div>
       </div>
 
+      <!-- STEP 5 -->
       <div v-else-if="step === 5" key="step-5" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Just one more thing...</h1>
@@ -119,6 +125,7 @@
         </div>
       </div>
 
+      <!-- STEP 6 -->
       <div v-else-if="step === 6" key="step-6" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">So, what do you say?</h1>
@@ -130,13 +137,18 @@
             >
               Owkie!
             </button>
-            <button @click="declineDate" class="btn btn-outline-secondary rounded-pill">
+            <button
+              ref="noButton"
+              @click="declineDate"
+              class="btn btn-outline-secondary rounded-pill"
+            >
               No, thank you.
             </button>
           </div>
         </div>
       </div>
 
+      <!-- STEP 7 (YES) -->
       <div
         v-else-if="step === 7"
         key="step-7"
@@ -159,6 +171,7 @@
         </div>
       </div>
 
+      <!-- STEP 8 -->
       <div v-else-if="step === 8" key="step-8" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Are you sure? 🥺</h1>
@@ -170,13 +183,18 @@
             >
               Wait... yes!
             </button>
-            <button @click="declineAgain" class="btn btn-outline-secondary rounded-pill">
+            <button
+              ref="noButton"
+              @click="declineAgain"
+              class="btn btn-outline-secondary rounded-pill"
+            >
               Still no.
             </button>
           </div>
         </div>
       </div>
 
+      <!-- STEP 9 -->
       <div v-else-if="step === 9" key="step-9" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Wait, but why? I'm literally going to cry. 😭</h1>
@@ -188,13 +206,18 @@
             >
               Fine, you win. Yes!
             </button>
-            <button @click="lastDecline" class="btn btn-outline-secondary rounded-pill">
+            <button
+              ref="noButton"
+              @click="lastDecline"
+              class="btn btn-outline-secondary rounded-pill"
+            >
               I'm sorry, no.
             </button>
           </div>
         </div>
       </div>
 
+      <!-- STEP 10 -->
       <div v-else-if="step === 10" key="step-10" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Okay, I get it. I'll just be over here. 💔</h1>
@@ -209,6 +232,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import 'animate.css'
+import confetti from 'canvas-confetti'
 
 import herPhoto from './images/les.jpg'
 import smPhoto from './images/sm-cab.jpg'
@@ -228,6 +252,8 @@ const herName = 'Les'
 const step = ref<number>(1)
 const touchStartX = ref<number>(0)
 const finalLocation = ref<string>('SM Cabanatuan')
+const isTransitioning = ref(false)
+const noButton = ref<HTMLButtonElement | null>(null)
 
 const handleTouchStart = (event: TouchEvent): void => {
   touchStartX.value = event.touches[0].clientX
@@ -238,7 +264,6 @@ const handleTouchEnd = (event: TouchEvent): void => {
   const swipeDistance = touchStartX.value - touchEndX
 
   const swipeThreshold = 50
-
   if (swipeDistance > swipeThreshold && step.value < 5) {
     nextStep()
   }
@@ -250,24 +275,42 @@ const nextStep = (): void => {
 
 const selectMeetup = (location: string): void => {
   finalLocation.value = location
-  step.value = 6 // Move to the final question card
+  step.value = 6
+}
+
+const launchConfetti = (): void => {
+  confetti({
+    particleCount: 120,
+    spread: 70,
+    origin: { y: 0.6 },
+  })
 }
 
 const acceptDate = (): void => {
   step.value = 7
+  launchConfetti()
 }
 
-const declineDate = (): void => {
-  step.value = 8
+const shakeAndProceed = (next: number, delay = 600): void => {
+  if (isTransitioning.value) return
+  isTransitioning.value = true
+
+  if (noButton.value) {
+    noButton.value.classList.add('animate__animated', 'animate__shakeX')
+    setTimeout(() => {
+      noButton.value?.classList.remove('animate__animated', 'animate__shakeX')
+    }, 500)
+  }
+
+  setTimeout(() => {
+    step.value = next
+    isTransitioning.value = false
+  }, delay)
 }
 
-const declineAgain = (): void => {
-  step.value = 9
-}
-
-const lastDecline = (): void => {
-  step.value = 10
-}
+const declineDate = (): void => shakeAndProceed(8, 800)
+const declineAgain = (): void => shakeAndProceed(9, 800)
+const lastDecline = (): void => shakeAndProceed(10, 1000)
 
 const resetApp = (): void => {
   step.value = 1
@@ -275,7 +318,6 @@ const resetApp = (): void => {
 </script>
 
 <style>
-/* Custom styles */
 .text-pink {
   color: #ff69b4;
 }
@@ -298,21 +340,29 @@ const resetApp = (): void => {
   --bs-btn-border-color: #888;
 }
 
-/* Vue Transition Styles for swiping effect */
+/* Slide transition */
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: all 0.5s ease-in-out;
 }
-
 .slide-left-enter-from,
 .slide-left-leave-to {
   opacity: 0;
   transform: translateX(100%);
 }
-
 .slide-left-leave-from,
 .slide-left-enter-to {
   opacity: 1;
   transform: translateX(0);
+}
+
+/* Fade transition for decline steps */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.8s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
