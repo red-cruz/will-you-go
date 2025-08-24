@@ -207,7 +207,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import 'animate.css'
 
 import herPhoto from './images/les.jpg'
@@ -218,6 +218,10 @@ import sadMeme1 from './images/sad-meme-1.jpg'
 import sadMeme2 from './images/sad-meme-2.webp'
 import sadMeme3 from './images/sad-meme-3.webp'
 import catGif from './images/cat.gif'
+
+onMounted(() => {
+  document.title = 'A Question for Les'
+})
 
 const herName = 'Les'
 
