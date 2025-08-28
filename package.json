@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
+    "@supabase/supabase-js": "^2.56.0",
     "animate.css": "^4.1.1",
     "bootstrap": "^5.3.7",
     "canvas-confetti": "^1.9.3",

@@ -1,8 +1,6 @@
 <template>
   <div id="app" class="container py-5 d-flex justify-content-center align-items-center min-vh-100">
-    <!-- Transition changes based on step -->
     <Transition :name="step >= 8 ? 'fade' : 'slide-left'" mode="out-in">
-      <!-- STEP 1 -->
       <div
         v-if="step === 1"
         key="step-1"
@@ -27,7 +25,6 @@
         </div>
       </div>
 
-      <!-- STEP 2 -->
       <div
         v-else-if="step === 2"
         key="step-2"
@@ -57,7 +54,6 @@
         </div>
       </div>
 
-      <!-- STEP 3 -->
       <div
         v-else-if="step === 3"
         key="step-3"
@@ -74,7 +70,7 @@
             class="img-fluid rounded mb-4 card-image"
           />
           <div class="bg-light-pink p-3 rounded mb-4">
-            <p class="mb-1 fs-5"><strong>When:</strong> This Saturday at 1 PM</p>
+            <p class="mb-1 fs-5"><strong>When:</strong> This Sunday at 1 PM</p>
           </div>
           <button @click="nextStep" class="btn btn-secondary btn-lg fw-bold rounded-pill mt-3">
             Got it!
@@ -82,7 +78,6 @@
         </div>
       </div>
 
-      <!-- STEP 4 -->
       <div
         v-else-if="step === 4"
         key="step-4"
@@ -103,7 +98,6 @@
         </div>
       </div>
 
-      <!-- STEP 5 -->
       <div v-else-if="step === 5" key="step-5" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Just one more thing...</h1>
@@ -125,7 +119,6 @@
         </div>
       </div>
 
-      <!-- STEP 6 -->
       <div v-else-if="step === 6" key="step-6" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">So, what do you say?</h1>
@@ -148,7 +141,6 @@
         </div>
       </div>
 
-      <!-- STEP 7 (YES) -->
       <div
         v-else-if="step === 7"
         key="step-7"
@@ -164,14 +156,13 @@
           />
           <div class="bg-light-green p-3 rounded text-start">
             <p class="mb-1"><strong>What:</strong> A fun afternoon doing something new together</p>
-            <p class="mb-1"><strong>When:</strong> This Saturday at 1 PM</p>
+            <p class="mb-1"><strong>When:</strong> This Sunday at 1 PM</p>
             <p class="mb-1"><strong>Where:</strong> {{ finalLocation }}</p>
             <p class="fst-italic text-secondary mt-3">(Seriously, comfy pants and shoes. 😉)</p>
           </div>
         </div>
       </div>
 
-      <!-- STEP 8 -->
       <div v-else-if="step === 8" key="step-8" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Are you sure? 🥺</h1>
@@ -194,7 +185,6 @@
         </div>
       </div>
 
-      <!-- STEP 9 -->
       <div v-else-if="step === 9" key="step-9" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Wait, but why? I'm literally going to cry. 😭</h1>
@@ -217,7 +207,6 @@
         </div>
       </div>
 
-      <!-- STEP 10 -->
       <div v-else-if="step === 10" key="step-10" class="card shadow-lg p-4 w-100 text-center">
         <div class="card-body">
           <h1 class="card-title text-pink mb-4">Okay, I get it. I'll just be over here. 💔</h1>
@@ -233,6 +222,12 @@
 import { onMounted, ref } from 'vue'
 import 'animate.css'
 import confetti from 'canvas-confetti'
+import { createClient } from '@supabase/supabase-js'
+
+// Supabase Initialization
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 import herPhoto from './images/les.jpg'
 import smPhoto from './images/sm-cab.jpg'
@@ -286,9 +281,49 @@ const launchConfetti = (): void => {
   })
 }
 
+const saveResponse = async (accepted: boolean): Promise<void> => {
+  let userIp = null
+  let userAgent = null
+
+  // Get the user's IP address
+  try {
+    const response = await fetch('https://api.ipify.org?format=json')
+    const data = await response.json()
+    userIp = data.ip
+  } catch (error) {
+    console.error('Error fetching IP address:', error)
+  }
+
+  // Get the user's device/browser information
+  if (navigator) {
+    userAgent = navigator.userAgent
+  }
+
+  const responseData = {
+    name: herName,
+    accepted: accepted,
+    final_location: accepted ? finalLocation.value : null,
+    timestamp: new Date().toISOString(),
+    ip_address: userIp,
+    user_agent: userAgent,
+  }
+
+  try {
+    const { data, error } = await supabase.from('will-you-go-les').insert([responseData])
+    if (error) {
+      console.error('Error saving response:', error.message)
+    } else {
+      console.log('Response saved successfully:', data)
+    }
+  } catch (err) {
+    console.error('An unexpected error occurred:', err)
+  }
+}
+
 const acceptDate = (): void => {
   step.value = 7
   launchConfetti()
+  saveResponse(true)
 }
 
 const shakeAndProceed = (next: number, delay = 600): void => {
@@ -310,7 +345,10 @@ const shakeAndProceed = (next: number, delay = 600): void => {
 
 const declineDate = (): void => shakeAndProceed(8, 800)
 const declineAgain = (): void => shakeAndProceed(9, 800)
-const lastDecline = (): void => shakeAndProceed(10, 1000)
+const lastDecline = (): void => {
+  shakeAndProceed(10, 1000)
+  saveResponse(false)
+}
 
 const resetApp = (): void => {
   step.value = 1
